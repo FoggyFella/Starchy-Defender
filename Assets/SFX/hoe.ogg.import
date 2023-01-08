@@ -1,0 +1,15 @@
+[remap]
+
+importer="ogg_vorbis"
+type="AudioStreamOGGVorbis"
+path="res://.import/hoe.ogg-1c650b640e9f65607e4090d1c3563340.oggstr"
+
+[deps]
+
+source_file="res://Assets/SFX/hoe.ogg"
+dest_files=[ "res://.import/hoe.ogg-1c650b640e9f65607e4090d1c3563340.oggstr" ]
+
+[params]
+
+loop=false
+loop_offset=0

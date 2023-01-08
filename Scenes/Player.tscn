@@ -1,0 +1,352 @@
+[gd_scene load_steps=41 format=2]
+
+[ext_resource path="res://Assets/hoe.png" type="Texture" id=1]
+[ext_resource path="res://Assets/shadow.png" type="Texture" id=2]
+[ext_resource path="res://Scripts/Player.gd" type="Script" id=3]
+[ext_resource path="res://Scripts/Hoe.gd" type="Script" id=4]
+[ext_resource path="res://Assets/seeds.png" type="Texture" id=5]
+[ext_resource path="res://Scripts/Seeds.gd" type="Script" id=6]
+[ext_resource path="res://Assets/watering_can.png" type="Texture" id=7]
+[ext_resource path="res://Scripts/Can.gd" type="Script" id=8]
+[ext_resource path="res://Assets/Font/NoFilter.tres" type="DynamicFontData" id=9]
+[ext_resource path="res://Assets/guy-walk.png" type="Texture" id=10]
+[ext_resource path="res://Assets/guy-idle.png" type="Texture" id=11]
+[ext_resource path="res://Assets/guy-walk-backwards.png" type="Texture" id=12]
+[ext_resource path="res://Assets/guy-idle-backwards.png" type="Texture" id=13]
+[ext_resource path="res://Assets/pitch_fork.png" type="Texture" id=14]
+[ext_resource path="res://Scripts/Fork.gd" type="Script" id=15]
+[ext_resource path="res://Assets/SFX/hoe.ogg" type="AudioStream" id=16]
+[ext_resource path="res://Assets/SFX/seeds.ogg" type="AudioStream" id=17]
+[ext_resource path="res://Assets/SFX/water_bucket.ogg" type="AudioStream" id=18]
+[ext_resource path="res://Assets/SFX/fork_readyup.ogg" type="AudioStream" id=19]
+[ext_resource path="res://Assets/SFX/fork_released.ogg" type="AudioStream" id=20]
+[ext_resource path="res://Assets/SFX/potato.wav" type="AudioStream" id=21]
+[ext_resource path="res://Assets/SFX/powerUp.wav" type="AudioStream" id=22]
+[ext_resource path="res://Assets/SFX/bug_splash.ogg" type="AudioStream" id=23]
+
+[sub_resource type="Shader" id=19]
+code = "shader_type canvas_item;
+
+uniform vec4 color : hint_color = vec4(1.0);
+uniform float width : hint_range(0, 10) = 1.0;
+uniform int pattern : hint_range(0, 2) = 0; // diamond, circle, square
+uniform bool inside = false;
+uniform bool add_margins = true; // only useful when inside is false
+
+void vertex() {
+	if (add_margins) {
+		VERTEX += (UV * 2.0 - 1.0) * width;
+	}
+}
+
+bool hasContraryNeighbour(vec2 uv, vec2 texture_pixel_size, sampler2D texture) {
+	for (float i = -ceil(width); i <= ceil(width); i++) {
+		float x = abs(i) > width ? width * sign(i) : i;
+		float offset;
+		
+		if (pattern == 0) {
+			offset = width - abs(x);
+		} else if (pattern == 1) {
+			offset = floor(sqrt(pow(width + 0.5, 2) - x * x));
+		} else if (pattern == 2) {
+			offset = width;
+		}
+		
+		for (float j = -ceil(offset); j <= ceil(offset); j++) {
+			float y = abs(j) > offset ? offset * sign(j) : j;
+			vec2 xy = uv + texture_pixel_size * vec2(x, y);
+			
+			if ((xy != clamp(xy, vec2(0.0), vec2(1.0)) || texture(texture, xy).a == 0.0) == inside) {
+				return true;
+			}
+		}
+	}
+	
+	return false;
+}
+
+void fragment() {
+	vec2 uv = UV;
+	
+	if (add_margins) {
+		vec2 texture_pixel_size = vec2(1.0) / (vec2(1.0) / TEXTURE_PIXEL_SIZE + vec2(width * 2.0));
+		
+		uv = (uv - texture_pixel_size * width) * TEXTURE_PIXEL_SIZE / texture_pixel_size;
+		
+		if (uv != clamp(uv, vec2(0.0), vec2(1.0))) {
+			COLOR.a = 0.0;
+		} else {
+			COLOR = texture(TEXTURE, uv);
+		}
+	} else {
+		COLOR = texture(TEXTURE, uv);
+	}
+	
+	if ((COLOR.a > 0.0) == inside && hasContraryNeighbour(uv, TEXTURE_PIXEL_SIZE, TEXTURE)) {
+		COLOR.rgb = inside ? mix(COLOR.rgb, color.rgb, color.a) : color.rgb;
+		COLOR.a += (1.0 - COLOR.a) * color.a;
+	}
+}"
+
+[sub_resource type="ShaderMaterial" id=20]
+shader = SubResource( 19 )
+shader_param/color = Color( 1, 1, 1, 1 )
+shader_param/width = 1.0
+shader_param/pattern = 0
+shader_param/inside = false
+shader_param/add_margins = true
+
+[sub_resource type="AtlasTexture" id=7]
+atlas = ExtResource( 11 )
+region = Rect2( 0, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=8]
+atlas = ExtResource( 11 )
+region = Rect2( 32, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=9]
+atlas = ExtResource( 11 )
+region = Rect2( 64, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=10]
+atlas = ExtResource( 13 )
+region = Rect2( 0, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=11]
+atlas = ExtResource( 13 )
+region = Rect2( 32, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=12]
+atlas = ExtResource( 13 )
+region = Rect2( 64, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=13]
+atlas = ExtResource( 10 )
+region = Rect2( 0, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=14]
+atlas = ExtResource( 10 )
+region = Rect2( 32, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=15]
+atlas = ExtResource( 12 )
+region = Rect2( 0, 0, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=16]
+atlas = ExtResource( 12 )
+region = Rect2( 32, 0, 32, 32 )
+
+[sub_resource type="SpriteFrames" id=17]
+animations = [ {
+"frames": [ SubResource( 7 ), SubResource( 8 ), SubResource( 9 ) ],
+"loop": true,
+"name": "Idle",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 10 ), SubResource( 11 ), SubResource( 12 ) ],
+"loop": true,
+"name": "Idle-Back",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 13 ), SubResource( 14 ) ],
+"loop": true,
+"name": "Walk",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 15 ), SubResource( 16 ) ],
+"loop": true,
+"name": "Walk-Back",
+"speed": 5.0
+} ]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 17, 34 )
+
+[sub_resource type="DynamicFont" id=5]
+outline_size = 1
+outline_color = Color( 0, 0, 0, 1 )
+font_data = ExtResource( 9 )
+
+[sub_resource type="RectangleShape2D" id=18]
+extents = Vector2( 4.58525, 5.89532 )
+
+[sub_resource type="DynamicFont" id=6]
+outline_size = 1
+outline_color = Color( 0, 0, 0, 1 )
+font_data = ExtResource( 9 )
+
+[node name="Player" type="KinematicBody2D"]
+z_index = 1
+collision_layer = 2
+script = ExtResource( 3 )
+
+[node name="Sprite" type="Sprite" parent="."]
+modulate = Color( 1, 1, 1, 0.054902 )
+position = Vector2( 0, 30 )
+scale = Vector2( 2.625, 1.6875 )
+texture = ExtResource( 2 )
+
+[node name="AnimatedSprite" type="AnimatedSprite" parent="."]
+material = SubResource( 20 )
+position = Vector2( 0, -2 )
+scale = Vector2( 2.125, 2.125 )
+frames = SubResource( 17 )
+animation = "Idle"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2( 0, -1 )
+shape = SubResource( 1 )
+
+[node name="Label" type="Label" parent="."]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -29.5
+margin_top = -51.0
+margin_right = 29.5
+margin_bottom = -35.0
+custom_fonts/font = SubResource( 5 )
+text = "CHARGE"
+align = 1
+valign = 1
+
+[node name="ToolRoot" type="Position2D" parent="."]
+
+[node name="Hoe" type="Sprite" parent="ToolRoot"]
+visible = false
+position = Vector2( 41, 0 )
+rotation = 1.5708
+scale = Vector2( 1.71608, 1.71608 )
+texture = ExtResource( 1 )
+offset = Vector2( 0, -13.286 )
+script = ExtResource( 4 )
+
+[node name="HitPoint" type="Position2D" parent="ToolRoot/Hoe"]
+position = Vector2( 5.24452, -20.9781 )
+
+[node name="sfx" type="AudioStreamPlayer" parent="ToolRoot/Hoe"]
+stream = ExtResource( 16 )
+volume_db = -5.0
+pitch_scale = 1.5
+
+[node name="Seeds" type="Sprite" parent="ToolRoot"]
+visible = false
+position = Vector2( 44, 0 )
+rotation = 1.5708
+texture = ExtResource( 5 )
+offset = Vector2( 0, -10 )
+script = ExtResource( 6 )
+
+[node name="HitPoint" type="Position2D" parent="ToolRoot/Seeds"]
+position = Vector2( 0.244564, -8.97808 )
+
+[node name="sfx" type="AudioStreamPlayer" parent="ToolRoot/Seeds"]
+stream = ExtResource( 17 )
+volume_db = -5.0
+pitch_scale = 1.5
+
+[node name="Can" type="Sprite" parent="ToolRoot"]
+visible = false
+position = Vector2( 43, 0 )
+texture = ExtResource( 7 )
+offset = Vector2( 0, -4.992 )
+script = ExtResource( 8 )
+
+[node name="HitPoint" type="Position2D" parent="ToolRoot/Can"]
+position = Vector2( 0.2446, 0.021915 )
+
+[node name="sfx" type="AudioStreamPlayer" parent="ToolRoot/Can"]
+stream = ExtResource( 18 )
+volume_db = -5.0
+pitch_scale = 1.5
+
+[node name="Fork" type="Sprite" parent="ToolRoot"]
+visible = false
+position = Vector2( 53, 1.90735e-06 )
+rotation = 1.57079
+scale = Vector2( 1.52664, 1.52664 )
+texture = ExtResource( 14 )
+offset = Vector2( 0, -4.992 )
+script = ExtResource( 15 )
+
+[node name="HitBox" type="Area2D" parent="ToolRoot/Fork"]
+collision_mask = 4
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ToolRoot/Fork/HitBox"]
+position = Vector2( -0.655006, -14.4108 )
+shape = SubResource( 18 )
+
+[node name="sfx1" type="AudioStreamPlayer" parent="ToolRoot/Fork"]
+stream = ExtResource( 19 )
+volume_db = -5.0
+pitch_scale = 1.5
+
+[node name="sfx2" type="AudioStreamPlayer" parent="ToolRoot/Fork"]
+stream = ExtResource( 20 )
+volume_db = -5.0
+pitch_scale = 1.5
+
+[node name="reload" type="Timer" parent="ToolRoot/Fork"]
+wait_time = 0.5
+one_shot = true
+
+[node name="Camera2D" type="Camera2D" parent="."]
+current = true
+zoom = Vector2( 0.9, 0.9 )
+smoothing_enabled = true
+
+[node name="Label2" type="Label" parent="."]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -88.5
+margin_top = 37.0
+margin_right = 88.5
+margin_bottom = 53.0
+custom_fonts/font = SubResource( 6 )
+text = "PRESS \"E\" TO HARVEST"
+
+[node name="Label3" type="Label" parent="."]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -88.5
+margin_top = 36.0
+margin_right = 88.5
+margin_bottom = 52.0
+custom_fonts/font = SubResource( 6 )
+text = "PRESS \"E\" TO USE WELL"
+align = 1
+valign = 1
+
+[node name="Backup" type="Timer" parent="."]
+wait_time = 2.0
+one_shot = true
+
+[node name="InfWaterTimer" type="Timer" parent="."]
+wait_time = 15.0
+one_shot = true
+
+[node name="Powerup" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 22 )
+volume_db = -5.0
+
+[node name="PotatoPicked" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 21 )
+volume_db = -5.0
+
+[node name="BugSplah" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 23 )
+volume_db = -5.0
+
+[connection signal="timeout" from="ToolRoot/Fork/reload" to="ToolRoot/Fork" method="_on_reload_timeout"]
+[connection signal="timeout" from="Backup" to="." method="_on_Backup_timeout"]
+[connection signal="timeout" from="InfWaterTimer" to="." method="_on_InfWaterTimer_timeout"]
