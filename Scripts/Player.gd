@@ -8,7 +8,7 @@ onready var spawn_points = $"../../SpawnPoints"
 onready var ui = $"../../UI"
 
 var should_spend_water = true
-var picked_potatoes = 24
+var picked_potatoes = 0
 var velocity = Vector2()
 export (int) var speed = 200
 var seeds = 1
