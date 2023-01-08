@@ -1,2 +1,10 @@
+Art,code,sfx by FoggyDude
+
 Pixellari font by Zacchary Dempsey-Plante
 Futurism font by Stefano Mazzari
+
+Software used:
+Audacity,jsfxr for sfx
+BandLab for music
+Aseprite for art
+Godot Game Engine
