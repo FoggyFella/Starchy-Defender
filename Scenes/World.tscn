@@ -409,7 +409,7 @@ shader_param/pattern = 0
 shader_param/inside = false
 shader_param/add_margins = true
 
-[sub_resource type="Shader" id=18]
+[sub_resource type="Shader" id=25]
 code = "shader_type canvas_item;
 
 uniform float lod: hint_range(0.0, 5) = 0.0;
@@ -420,7 +420,7 @@ void fragment(){
 }"
 
 [sub_resource type="ShaderMaterial" id=19]
-shader = SubResource( 18 )
+shader = SubResource( 25 )
 shader_param/lod = 1.238
 
 [sub_resource type="StyleBoxFlat" id=20]
